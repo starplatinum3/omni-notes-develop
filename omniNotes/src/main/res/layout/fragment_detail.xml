@@ -209,7 +209,7 @@
                   android:id="@+id/btn_next"
                   android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
-                  android:text="下一个"></Button>
+                  android:text="下一个"/>
 
               <Button
                   android:id="@+id/btn_pre"
@@ -220,9 +220,18 @@
                     android:id="@+id/btn_search"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="搜索"></Button>
+                    android:text="搜索"/>
+                <Button
+                    android:id="@+id/btn_finger"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="指纹"/>
             </LinearLayout>
-
+              <Button
+                  android:id="@+id/btn_finger_act"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:text="指纹界面"/>
           </LinearLayout>
 
         </LinearLayout>

@@ -117,7 +117,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.util.Pair;
@@ -173,6 +175,7 @@ import it.feio.android.omninotes.models.listeners.OnNoteSaved;
 import it.feio.android.omninotes.models.listeners.OnReminderPickedListener;
 import it.feio.android.omninotes.models.listeners.RecyclerViewItemClickSupport;
 import it.feio.android.omninotes.models.views.ExpandableHeightGridView;
+import it.feio.android.omninotes.utils.ActivityUtil;
 import it.feio.android.omninotes.utils.AlphaManager;
 import it.feio.android.omninotes.utils.BitmapHelper;
 import it.feio.android.omninotes.utils.ConnectionManager;
@@ -207,10 +210,12 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import rx.Observable;
 
@@ -311,14 +316,15 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         super.onCreate(savedInstanceState);
         mFragment = this;
 
+        //fingerprintHelperInit();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    void fingerprintHelperInit(){
-
-        fingerprintHelper=new FingerprintHelper();
+    void fingerprintHelperInit() {
+        Log.i(TAG, "fingerprintHelperInit: fingerprintHelperInit");
+        fingerprintHelper = new FingerprintHelper();
         fingerprintHelper.setContext(mainActivity);
-        FingerprintManager.AuthenticationCallback authenticationCallback=new FingerprintManager.AuthenticationCallback(){
+        FingerprintManager.AuthenticationCallback authenticationCallback = new FingerprintManager.AuthenticationCallback() {
             @Override
             public void onAuthenticationError(int errorCode, CharSequence errString) {
                 //但多次指纹密码验证错误后，进入此方法；并且，不能短时间内调用指纹验证
@@ -331,10 +337,12 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
                 Toast.makeText(mainActivity, errString, Toast.LENGTH_SHORT).show();
                 fingerprintHelper.showAuthenticationScreen(mainActivity);
             }
+
             @Override
             public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
                 Toast.makeText(mainActivity, helpString, Toast.LENGTH_SHORT).show();
             }
+
             @Override
             public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
 //                if (imageDialog!=null){
@@ -347,6 +355,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
                 noteTmp.setPasswordChecked(true);
                 init();
             }
+
             @Override
             public void onAuthenticationFailed() {
 //                if (imageDialog!=null){
@@ -359,13 +368,14 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         };
         fingerprintHelper.setSelfCancelled(authenticationCallback);
         fingerprintHelper.permissionsInit();
+
     }
 
-    void imageDialogDismiss(){
-        if (imageDialog!=null){
-            imageDialog.dismiss();
-            imageDialog = null;
-        }
+    void imageDialogDismiss() {
+//        if (imageDialog!=null){
+//            imageDialog.dismiss();
+//            imageDialog = null;
+//        }
     }
 
     @Override
@@ -395,6 +405,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         return view;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -414,6 +425,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         restoreTempNoteAfterOrientationChange(savedInstanceState);
 
         addSketchedImageIfPresent();
+        //要输入密码之后才会到这里
 
         // Ensures that Detail Fragment always have the back Arrow when it's created
         EventBus.getDefault().post(new SwitchFragmentEvent(SwitchFragmentEvent.Direction.CHILDREN));
@@ -424,11 +436,28 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 //        it.feio.android.omninotes.widget.EditText search_text
 //                = mainActivity.findViewById(R.id.search_text);
         search_text = mainActivity.findViewById(R.id.search_text);
+        binding.btnFinger.setOnClickListener(view -> {
+            try {
+                fingerprintHelperInit();
+                //fingerprintManager.authenticate
+                //fingerprintHelper.aut
+                fingerprintHelper.startListening(null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        });
+        binding.btnFingerAct.setOnClickListener(view -> {
+            ActivityUtil.startActivity(mainActivity, FingerActivity.class);
+
+        });
+
 //        search_text.onchang
 //        EditText textChange
 //        search_text.  onTextChanged();
 //        search_text.onTextChanged()
 //        search_text.addTextChangedListener(textwatcher);
+
     }
 
     TextWatcher textwatcher = new TextWatcher() {
@@ -527,10 +556,12 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void init() {
 
         // Handling of Intent actions
         handleIntents();
+        //被锁住的没有走这条路啊
 
         if (noteOriginal == null) {
             noteOriginal = getArguments().getParcelable(INTENT_NOTE);
@@ -583,7 +614,8 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        if (requestCode == REQUEST_CODE_CONFIRM_DEVICE_CREDENTIALS) {
-////            请求\u代码\u确认\u设备\u凭证
+////            请求 代码  确认 设备 凭证
+//    是因为 钢 u的原因吗
 //            // Challenge completed, proceed with using cipher
 //            if (resultCode == RESULT_OK) {
 //                noteAdapter.openNote();
@@ -617,35 +649,110 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 //    };
 
 
+    private BiometricPrompt biometricPrompt;
+
+    private void startFinger() {
+        biometricPrompt = new BiometricPrompt(this, new Executor() {
+            @Override
+            public void execute(Runnable command) {
+                command.run();
+            }
+        }, new FingerCallBack());
+        biometricPrompt.authenticate(new BiometricPrompt.PromptInfo.Builder().setTitle("title")
+                .setSubtitle("subTitle")
+                .setDescription("description")
+                .setDeviceCredentialAllowed(false)
+                .setNegativeButtonText("button").build());
+    }
+
+    private void cancelFinger() {
+        if (biometricPrompt != null) {
+            biometricPrompt.cancelAuthentication();
+        }
+    }
+
+    private class FingerCallBack extends BiometricPrompt.AuthenticationCallback {
+        @Override
+        public void onAuthenticationError(int errMsgId, CharSequence errString) {
+            super.onAuthenticationError(errMsgId, errString);
+            Log.e("fingers", "onAuthenticationError");
+
+        }
+
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public void onAuthenticationSucceeded(@NonNull @NotNull BiometricPrompt.AuthenticationResult result) {
+            super.onAuthenticationSucceeded(result);
+            cancelFinger();
+            Log.e("fingers", "识别成功 onAuthenticationSucceeded");
+            String tip = "识别成功";
+            Toast.makeText(mainActivity, tip, Toast.LENGTH_SHORT).show();
+            //成功后 可继续验证指纹
+            //binding.tvTip.setText(tip);
+            noteTmp.setPasswordChecked(true);
+            init();
+        }
+
+        @Override
+        public void onAuthenticationFailed() {
+            super.onAuthenticationFailed();
+            Log.e("fingers", "onAuthenticationFailed  ");
+            String tip = "onAuthenticationFailed";
+            //Toast.makeText(FingerActivity.this, tip, Toast.LENGTH_SHORT).show();
+            //binding.tvTip.setText(tip);
+            goBack = true;
+            goHome();
+        }
+    }
+
+    enum PasswordType {
+        PASSWORD, FINGER
+    }
+
     /**
      * Checks note lock and password before showing note content
      * 在显示便笺内容之前检查便笺锁和密码
      */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private void checkNoteLock(Note note) {
         // If note is locked security password will be requested
 //        初始化的时候 调用，如果想要用 指纹呢，默认指纹，点击可以密码解锁
+        PasswordType passwordType = PasswordType.FINGER;
+
+        Log.i(TAG, "checkNoteLock: ");
         if (note.isLocked()
                 && Prefs.getString(PREF_PASSWORD, null) != null
                 && !Prefs.getBoolean("settings_password_access", false)) {
-            fingerprintHelper.showAuthenticationScreen();
-            PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
-                switch (passwordConfirmed) {
-                    case SUCCEED:
-                        noteTmp.setPasswordChecked(true);
-                        init();
-                        break;
-                    case FAIL:
-                        goBack = true;
-                        goHome();
-                        break;
-                    case RESTORE:
-                        goBack = true;
-                        goHome();
-                        PasswordHelper.resetPassword(mainActivity);
-                        break;
-                }
-            });
+//            fingerprintHelper.showAuthenticationScreen();
+//            fingerprintHelper.showAuthenticationScreen(this);
+            if (passwordType == PasswordType.PASSWORD) {
+                Log.i(TAG, "checkNoteLock: PASSWORD");
+                PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
+                    switch (passwordConfirmed) {
+                        case SUCCEED:
+                            noteTmp.setPasswordChecked(true);
+                            init();
+                            break;
+                        case FAIL:
+                            goBack = true;
+                            goHome();
+                            break;
+                        case RESTORE:
+                            //恢复
+                            goBack = true;
+                            goHome();
+                            PasswordHelper.resetPassword(mainActivity);
+                            break;
+                    }
+                });
+
+            }else if(passwordType==PasswordType.FINGER){
+                Log.i(TAG, "checkNoteLock: FINGER");
+                startFinger();
+            }
+
         } else {
+            //没有lock
             noteTmp.setPasswordChecked(true);
             init();
         }
@@ -1954,14 +2061,15 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         binding.fragmentDetailContent.detailContent.gatherLinksForText();
     }
 
-    void showSearchToolToggle(){
-        LinearLayout search_tool= mainActivity.findViewById(R.id.search_tool);
-        if(search_tool.getVisibility()!=View.VISIBLE){
+    void showSearchToolToggle() {
+        LinearLayout search_tool = mainActivity.findViewById(R.id.search_tool);
+        if (search_tool.getVisibility() != View.VISIBLE) {
             search_tool.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             search_tool.setVisibility(View.GONE);
         }
     }
+
     void search() {
 //        FragmentActivity activity1 = getActivity();
 //        getActivity().findViewById( R.id.search_tool);
@@ -2795,6 +2903,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
     /**
      * Notes locking with security password to avoid viewing, editing or deleting from unauthorized
+     * 注意：使用安全密码锁定，以避免在未经授权的情况下查看、编辑或删除
      */
     private void lockNote() {
         LogDelegate.d("Locking or unlocking note " + note.get_id());

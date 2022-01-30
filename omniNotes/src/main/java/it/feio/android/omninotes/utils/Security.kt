@@ -28,6 +28,9 @@ import javax.crypto.spec.DESKeySpec
 class Security private constructor(){
 
     companion object {
+//        const val LOAN_TYPE = "loanType"
+//        const val LOAN_TITLE = "loanTitle"
+
         @JvmStatic
         fun md5(s: String): String {
             return try {
@@ -44,6 +47,7 @@ class Security private constructor(){
             } catch (e: NoSuchAlgorithmException) {
                 LogDelegate.w("Something is gone wrong calculating MD5", e)
                 ""
+//                https://blog.csdn.net/beyondforme/article/details/106279549
             }
         }
 

@@ -23,6 +23,8 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+
 import com.pixplicity.easyprefs.library.Prefs;
 import it.feio.android.omninotes.MainActivity;
 import it.feio.android.omninotes.OmniNotes;
@@ -87,26 +89,36 @@ public class DataBackupIntentService extends IntentService implements OnAttachin
     createNotification(intent, this, title, text, null);
   }
 
+  private static final String TAG  = "DataBackupIntentService";
   private synchronized void exportData(Intent intent) {
 
     boolean result;
 
     // Gets backup folder
     String backupName = intent.getStringExtra(INTENT_BACKUP_NAME);
+//    这个是传入的 但是他的目录是
     File backupDir = StorageHelper.getOrCreateBackupDir(backupName);
 
     // Directory clean in case of previously used backup name
+//    如果是以前使用的备份名称，则清除目录
     StorageHelper.delete(this, backupDir.getAbsolutePath());
 
     // Directory is re-created in case of previously used backup name (removed above)
+//    如果是以前使用的备份名称，则会重新创建目录（上面已删除）
     backupDir = StorageHelper.getOrCreateBackupDir(backupName);
 
     BackupHelper.exportNotes(backupDir);
     result = BackupHelper.exportAttachments(backupDir, mNotificationsHelper);
     result = result  && BackupHelper.exportSettings(backupDir);
 
+    String successStr=getString(R.string.data_export_completed)+"\nat: "+backupDir.toString();
+//    String notificationMessage =
+//        result ? getString(R.string.data_export_completed) : getString(R.string.data_export_failed);
     String notificationMessage =
-        result ? getString(R.string.data_export_completed) : getString(R.string.data_export_failed);
+            result ? successStr: getString(R.string.data_export_failed);
+
+    Log.i(TAG,notificationMessage);
+//    消息没有弹出
     mNotificationsHelper.finish(intent, notificationMessage);
   }
 

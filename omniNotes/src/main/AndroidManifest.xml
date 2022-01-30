@@ -242,6 +242,16 @@
       </intent-filter>
     </activity>
 
+    <activity
+        android:name=".FingerActivity"
+        android:theme="@style/Theme.MaterialComponents.Light.Dialog">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+      </intent-filter>
+    </activity>
+
+
+
     <!-- Widget Simple -->
     <receiver
       android:name="it.feio.android.omninotes.widget.SimpleWidgetProvider"

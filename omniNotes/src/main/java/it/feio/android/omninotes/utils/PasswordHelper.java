@@ -23,6 +23,7 @@ import static it.feio.android.omninotes.utils.ConstantsBase.PREF_PASSWORD_QUESTI
 
 import android.app.Activity;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -50,7 +51,7 @@ public class PasswordHelper {
     LayoutInflater inflater = mActivity.getLayoutInflater();
     final View v = inflater.inflate(R.layout.password_request_dialog_layout, null);
     final EditText passwordEditText = v.findViewById(R.id.password_request);
-
+      Log.i("requestPassword", "requestPassword: ");
 //    填写了密码 ，然后确认吗
     MaterialDialog dialog = new MaterialDialog.Builder(mActivity)
         .autoDismiss(false)
@@ -107,6 +108,7 @@ public class PasswordHelper {
 
 
   public static void resetPassword(final Activity mActivity) {
+      Log.i("resetPassword", "resetPassword: ");
     View layout = mActivity.getLayoutInflater()
         .inflate(R.layout.password_reset_dialog_layout, null);
     final EditText answerEditText = layout.findViewById(R.id.reset_password_answer);

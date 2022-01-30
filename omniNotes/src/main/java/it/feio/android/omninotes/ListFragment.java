@@ -48,12 +48,14 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -65,10 +67,14 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.SearchView.OnQueryTextListener;
+import androidx.biometric.BiometricPrompt;
 import androidx.core.util.Pair;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuItemCompat;
@@ -125,9 +131,11 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 
 
 public class ListFragment extends BaseFragment implements OnViewTouchedListener,
@@ -960,9 +968,76 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
     mainActivity.supportInvalidateOptionsMenu();
   }
 
+  private BiometricPrompt biometricPrompt;
+
+  private void startFinger() {
+    biometricPrompt = new BiometricPrompt(this, command -> command.run(), new FingerCallBack());
+    biometricPrompt.authenticate(new BiometricPrompt.PromptInfo.Builder().setTitle("查看笔记")
+            //.setSubtitle("subTitle")
+            //.setDescription("description")
+            .setDeviceCredentialAllowed(false)
+            .setNegativeButtonText("取消").build());
+  }
+
+  private void cancelFinger() {
+    if (biometricPrompt != null) {
+      biometricPrompt.cancelAuthentication();
+    }
+  }
+
+  private class FingerCallBack extends BiometricPrompt.AuthenticationCallback {
+    @Override
+    public void onAuthenticationError(int errMsgId, CharSequence errString) {
+      super.onAuthenticationError(errMsgId, errString);
+      Log.e("fingers", "onAuthenticationError");
+
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @Override
+    public void onAuthenticationSucceeded(@NonNull @NotNull BiometricPrompt.AuthenticationResult result) {
+      super.onAuthenticationSucceeded(result);
+      cancelFinger();
+      Log.e("fingers", "识别成功 onAuthenticationSucceeded");
+      String tip = "识别成功";
+      Toast.makeText(mainActivity, tip, Toast.LENGTH_SHORT).show();
+      //成功后 可继续验证指纹
+      //binding.tvTip.setText(tip);
+      //note.setPasswordChecked(true);
+      //
+      //AnimationsHelper.zoomListItem(mainActivity, view, getZoomListItemView(view, note),
+      //        binding.listRoot, buildAnimatorListenerAdapter(note));
+
+      noteNow.setPasswordChecked(true);
+      AnimationsHelper.zoomListItem(mainActivity, viewNow, getZoomListItemView(viewNow, noteNow),
+              binding.listRoot, buildAnimatorListenerAdapter(noteNow));
+    }
+
+    @Override
+    public void onAuthenticationFailed() {
+      super.onAuthenticationFailed();
+      Log.e("fingers", "onAuthenticationFailed  ");
+      String tip = "onAuthenticationFailed";
+      //Toast.makeText(FingerActivity.this, tip, Toast.LENGTH_SHORT).show();
+      //binding.tvTip.setText(tip);
+      //goBack = true;
+      //goHome();
+    }
+  }
+
+  enum PasswordType {
+    PASSWORD, FINGER
+  }
+  Note noteNow;
+   View viewNow;
 
 //  这里有关密码的
   void editNote(final Note note, final View view) {
+    PasswordType passwordType=PasswordType.FINGER;
+    if(passwordType==PasswordType.FINGER){
+      editNoteFingerCheck(note,view);
+      return;
+    }
     if (note.isLocked() && !Prefs.getBoolean("settings_password_access", false)) {
       PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
         if (passwordConfirmed.equals(PasswordValidator.Result.SUCCEED)) {
@@ -975,6 +1050,13 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
       AnimationsHelper.zoomListItem(mainActivity, view, getZoomListItemView(view, note),
           binding.listRoot, buildAnimatorListenerAdapter(note));
     }
+  }
+
+  void editNoteFingerCheck(final Note note, final View view) {
+    noteNow=note;
+    viewNow=view;
+    startFinger();
+
   }
 
 

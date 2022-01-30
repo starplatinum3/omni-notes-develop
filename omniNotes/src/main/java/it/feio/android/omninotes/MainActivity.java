@@ -37,6 +37,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
@@ -466,6 +467,7 @@ public class MainActivity extends BaseActivity implements
 
 
   public void switchToDetail(Note note) {
+    Log.i("switchToDetail", "switchToDetail: ");
     FragmentTransaction transaction = getFragmentManagerInstance().beginTransaction();
     animateTransition(transaction, TRANSITION_HORIZONTAL);
     DetailFragment mDetailFragment = new DetailFragment();
@@ -473,10 +475,13 @@ public class MainActivity extends BaseActivity implements
     b.putParcelable(INTENT_NOTE, note);
     mDetailFragment.setArguments(b);
     if (getFragmentManagerInstance().findFragmentByTag(FRAGMENT_DETAIL_TAG) == null) {
+      //之前有过》？
+      Log.i("FRAGMENT_DETAIL_TAG", "switchToDetail: FRAGMENT_DETAIL_TAG ==null");
       transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG)
           .addToBackStack(FRAGMENT_LIST_TAG)
           .commitAllowingStateLoss();
     } else {
+      Log.i("FRAGMENT_DETAIL_TAG", "switchToDetail: FRAGMENT_DETAIL_TAG ！=null 之前，没有？");
       getFragmentManagerInstance().popBackStackImmediate();
       transaction.replace(R.id.fragment_container, mDetailFragment, FRAGMENT_DETAIL_TAG)
           .addToBackStack(FRAGMENT_DETAIL_TAG)

@@ -135,6 +135,7 @@ public class FingerprintHelper {
     //添加系统权限程序
     public boolean addPermission(List<String> permissionsList, String permission) {
         //判断该应用是否具备要请求的权限
+        Log.i("context", "addPermission: context "+context);
         if (ContextCompat.checkSelfPermission(context,permission) != PackageManager.PERMISSION_GRANTED) {
             //没有该权限，则加入到请求列表
             permissionsList.add(permission);

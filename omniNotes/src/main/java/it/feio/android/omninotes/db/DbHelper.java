@@ -174,6 +174,8 @@ public class DbHelper extends SQLiteOpenHelper {
     super.onOpen(db);
   }
 
+//  用了这个框架就不能用room了吗 因为数据库的建造也是在代码完成的
+//  而不是外部
   @Override
   public void onCreate(SQLiteDatabase db) {
     try {

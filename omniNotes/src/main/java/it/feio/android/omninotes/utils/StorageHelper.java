@@ -246,6 +246,7 @@ public class StorageHelper {
 
   /**
    * Create a path where we will place our private file on external
+   * 创建一个路径，将我们的私有文件放置在外部
    */
   public static File copyToBackupDir(File backupDir, String fileName, InputStream fileInputStream) {
     if (!checkStorage()) {
