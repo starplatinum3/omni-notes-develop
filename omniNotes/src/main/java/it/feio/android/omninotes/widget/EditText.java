@@ -84,6 +84,9 @@ public class EditText extends com.neopixl.pixlui.components.edittext.EditText im
     // The String Containing the Text that we have to gather links from private
     // SpannableString linkableText;
     // Populating and gathering all the links that are present in the Text
+    //包含文本的字符串，我们必须从private收集链接
+    //SpannableString linkableText；
+    //填充并收集文本中的所有链接
     private ArrayList<Hyperlink> listOfLinks;
     private WeakReference<TextLinkClickListener> textLinkClickListenerWeakReference;
 
@@ -831,6 +834,8 @@ public class EditText extends com.neopixl.pixlui.components.edittext.EditText im
     /**
      * Collects the Links depending upon the Pattern that we supply
      * and add the links to the ArrayList of the links
+     * 根据我们提供的模式收集链接
+     * *并将链接添加到链接的ArrayList中
      */
     public void gatherLinksForText() {
         String text = getText().toString();
@@ -846,11 +851,14 @@ public class EditText extends com.neopixl.pixlui.components.edittext.EditText im
             Hyperlink linkSpec = listOfLinks.get(i);
 
             // this process here makes the Clickable Links from the text
+            //这个过程可以从文本中创建可点击的链接
+            //链接点击的事件是
             linkableText.setSpan(linkSpec.span, linkSpec.start, linkSpec.end,
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
 
         // sets the text for the TextView with enabled links
+        //为启用链接的TextView设置文本
         setText(linkableText);
     }
 
@@ -885,8 +893,9 @@ public class EditText extends com.neopixl.pixlui.components.edittext.EditText im
 
     /**
      * Performs the Regex Comparison for the Pattern and adds them to listOfLinks array list
+     * *对模式执行正则表达式比较，并将它们添加到listOfLinks数组列表中
      * @param links
-     * @param s
+     * @param words
      * @param pattern
      */
     private final void gatherLinks2(ArrayList<Hyperlink> links, String[] words, Pattern pattern) {
@@ -903,10 +912,14 @@ public class EditText extends com.neopixl.pixlui.components.edittext.EditText im
 
                 // Hyperlink is basically used like a structure for storing the
                 // information about where the link was found.
+                //超级链接基本上是一种存储数据的结构
+                //有关找到链接的位置的信息。
                 Hyperlink spec = new Hyperlink();
 
                 spec.textSpan = word;
+                //https://blog.csdn.net/danpincheng0204/article/details/106778955
                 spec.span = new InternalURLSpan(spec.textSpan.toString());
+                //spec.span.onClick(this);
                 spec.start = start;
                 spec.end = end;
 

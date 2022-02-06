@@ -14,7 +14,7 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-
+<!--    油炸面包丁 和 toast 差不多的意思 就是个展示东西的吧-->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/crouton_handle"
   android:layout_width="match_parent"

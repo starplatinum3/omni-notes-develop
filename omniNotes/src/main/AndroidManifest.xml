@@ -244,12 +244,30 @@
 
     <activity
         android:name=".FingerActivity"
-        android:theme="@style/Theme.MaterialComponents.Light.Dialog">
+        android:theme="@style/Theme.MaterialComponents.Light.Dialog"
+       >
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
       </intent-filter>
     </activity>
 
+    android:theme="@style/Theme.MaterialComponents.Light.Dialog"
+    android:theme="@style/Theme.AppCompat"
+    <activity
+        android:name=".BackupInfoActivity"
+
+        android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+     >
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+      </intent-filter>
+    </activity>
+
+    <activity
+        android:name=".activity.HolderActivity"
+        android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+        >
+    </activity>
 
 
     <!-- Widget Simple -->

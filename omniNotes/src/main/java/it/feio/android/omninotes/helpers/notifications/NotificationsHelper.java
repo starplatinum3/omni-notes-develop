@@ -38,13 +38,13 @@ import com.pixplicity.easyprefs.library.Prefs;
 import it.feio.android.omninotes.R;
 import lombok.NonNull;
 
-
+//NotificationCompat.Builder 点击事件
 public class NotificationsHelper {
 
   private Context mContext;
   private Builder mBuilder;
   private NotificationManager mNotificationManager;
-
+  //NotificationManager 有按钮
   public NotificationsHelper(Context mContext) {
     this.mContext = mContext.getApplicationContext();
     if (mNotificationManager == null) {
@@ -222,7 +222,16 @@ public class NotificationsHelper {
   }
 
   public void finish(int id, Intent intent, String message) {
+
     mBuilder.setContentTitle(message).setProgress(0, 0, false).setOngoing(false);
+    mNotificationManager.notify(id, mBuilder.build());
+  }
+
+  public void finish(int id, PendingIntent pendingIntent, String message) {
+
+    mBuilder.setContentTitle(message).
+            setProgress(0, 0, false).
+            setOngoing(false).setContentIntent(pendingIntent);
     mNotificationManager.notify(id, mBuilder.build());
   }
 

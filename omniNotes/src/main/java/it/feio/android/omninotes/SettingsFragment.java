@@ -637,6 +637,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     String fileName = sdf.format(Calendar.getInstance().getTime());
     final EditText fileNameEditText = v.findViewById(R.id.export_file_name);
     final TextView backupExistingTextView = v.findViewById(R.id.backup_existing);
+    final TextView backupPlaceTextView = v.findViewById(R.id.backup_place);
     fileNameEditText.setHint(fileName);
     fileNameEditText.addTextChangedListener(new TextWatcher() {
       @Override
@@ -670,7 +671,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
               AnalyticsHelper.CATEGORIES.SETTING, "settings_export_data");
           String backupName = TextUtils.isEmpty(fileNameEditText.getText().toString()) ?
               fileNameEditText.getHint().toString() : fileNameEditText.getText().toString();
-          BackupHelper.startBackupService(backupName);
+          //BackupHelper.startBackupService(backupName);
+          BackupHelper.startBackupService(backupName,getContext());
+          //getContext()
         }).show();
   }
 

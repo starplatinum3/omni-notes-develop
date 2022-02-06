@@ -1034,11 +1034,14 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 //  这里有关密码的
   void editNote(final Note note, final View view) {
     PasswordType passwordType=PasswordType.FINGER;
-    if(passwordType==PasswordType.FINGER){
-      editNoteFingerCheck(note,view);
-      return;
-    }
+
     if (note.isLocked() && !Prefs.getBoolean("settings_password_access", false)) {
+
+      if(passwordType==PasswordType.FINGER){
+        editNoteFingerCheck(note,view);
+        return;
+      }
+
       PasswordHelper.requestPassword(mainActivity, passwordConfirmed -> {
         if (passwordConfirmed.equals(PasswordValidator.Result.SUCCEED)) {
           note.setPasswordChecked(true);
@@ -1188,12 +1191,15 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
     // Search for a tag
     // A workaround to simplify it's to simulate normal search
+    //搜索标签
+    //一个简化的解决方法是模拟正常搜索
     if (Intent.ACTION_VIEW.equals(intent.getAction()) && intent.getCategories() != null
         && intent.getCategories().contains(Intent.CATEGORY_BROWSABLE)) {
       searchTags = intent.getDataString().replace(UrlCompleter.HASHTAG_SCHEME, "");
       goBackOnToggleSearchLabel = true;
     }
 
+    //动作快捷小部件
     if (ACTION_SHORTCUT_WIDGET.equals(intent.getAction())) {
       return;
     }
@@ -1204,6 +1210,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
     if (searchTags != null || searchQuery != null || searchUncompleteChecklists
         || IntentChecker
         .checkAction(intent, Intent.ACTION_SEARCH, ACTION_SEARCH_UNCOMPLETE_CHECKLISTS)) {
+      //操作搜索未完成检查表  ACTION_SEARCH_UNCOMPLETE_CHECKLISTS
 
       // Using tags
       if (searchTags != null && intent.getStringExtra(SearchManager.QUERY) == null) {
@@ -1219,6 +1226,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
             .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "getNotesByUncompleteChecklist");
       } else {
         // Get the intent, verify the action and get the query
+        //获取意图、验证操作并获取查询
         if (intent.getStringExtra(SearchManager.QUERY) != null) {
           searchQuery = intent.getStringExtra(SearchManager.QUERY);
           searchTags = null;
@@ -1232,6 +1240,7 @@ public class ListFragment extends BaseFragment implements OnViewTouchedListener,
 
     } else {
       // Check if is launched from a widget with categories
+      //检查是否从具有类别的小部件启动
       if ((ACTION_WIDGET_SHOW_LIST.equals(intent.getAction()) && intent.hasExtra(INTENT_WIDGET))
           || !TextUtils.isEmpty(mainActivity.navigationTmp)) {
         String widgetId =

@@ -17,18 +17,33 @@
 
 package it.feio.android.omninotes.async;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static it.feio.android.omninotes.utils.ConstantsBase.ACTION_RESTART_APP;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.RemoteViews;
+
+import androidx.core.app.NotificationCompat;
 
 import com.pixplicity.easyprefs.library.Prefs;
+
+import it.feio.android.omninotes.BackupInfoActivity;
 import it.feio.android.omninotes.MainActivity;
 import it.feio.android.omninotes.OmniNotes;
 import it.feio.android.omninotes.R;
+import it.feio.android.omninotes.SettingsActivity;
+import it.feio.android.omninotes.activity.HolderActivity;
 import it.feio.android.omninotes.db.DbHelper;
 import it.feio.android.omninotes.helpers.BackupHelper;
 import it.feio.android.omninotes.helpers.LogDelegate;
@@ -38,6 +53,9 @@ import it.feio.android.omninotes.helpers.notifications.NotificationsHelper;
 import it.feio.android.omninotes.models.Attachment;
 import it.feio.android.omninotes.models.Note;
 import it.feio.android.omninotes.models.listeners.OnAttachingFileListener;
+import it.feio.android.omninotes.receiver.ButtonReceiver;
+import it.feio.android.omninotes.utils.ActivityUtil;
+import it.feio.android.omninotes.utils.NotificationUtils;
 import it.feio.android.omninotes.utils.ReminderHelper;
 import it.feio.android.omninotes.utils.StorageHelper;
 import java.io.File;
@@ -71,6 +89,8 @@ public class DataBackupIntentService extends IntentService implements OnAttachin
     // If an alarm has been fired a notification must be generated
     if (ACTION_DATA_EXPORT.equals(intent.getAction())) {
       exportData(intent);
+      //怎么让他在界面上有显示呢
+      //service 在 handler 向着Activity 发送
     } else if (ACTION_DATA_IMPORT.equals(intent.getAction()) || ACTION_DATA_IMPORT_LEGACY
         .equals(intent.getAction())) {
       importData(intent);
@@ -107,9 +127,11 @@ public class DataBackupIntentService extends IntentService implements OnAttachin
 //    如果是以前使用的备份名称，则会重新创建目录（上面已删除）
     backupDir = StorageHelper.getOrCreateBackupDir(backupName);
 
-    BackupHelper.exportNotes(backupDir);
-    result = BackupHelper.exportAttachments(backupDir, mNotificationsHelper);
-    result = result  && BackupHelper.exportSettings(backupDir);
+    //result=false;
+    result=true;
+    //BackupHelper.exportNotes(backupDir);
+    //result = BackupHelper.exportAttachments(backupDir, mNotificationsHelper);
+    //result = result  && BackupHelper.exportSettings(backupDir);
 
     String successStr=getString(R.string.data_export_completed)+"\nat: "+backupDir.toString();
 //    String notificationMessage =
@@ -118,10 +140,164 @@ public class DataBackupIntentService extends IntentService implements OnAttachin
             result ? successStr: getString(R.string.data_export_failed);
 
     Log.i(TAG,notificationMessage);
-//    消息没有弹出
-    mNotificationsHelper.finish(intent, notificationMessage);
+    //startBackupInfoActivity(backupDir,notificationMessage);
+    startBackupInfo(backupDir,notificationMessage);
   }
 
+  void startBackupInfoActivity(File backupDir, String notificationMessage){
+    //    消息没有弹出
+    Intent intentToBackupInfoActivity = new Intent(this, BackupInfoActivity.class);
+    //activity.startActivity(intent);
+    //backupDir.getParent()
+    String parent = backupDir.getParent();
+    Log.i(TAG, "exportData: parent  "+parent);
+    //这里需要传入的是这个文件而不是他的父亲  activity里面不要打开他的 父亲啊 因为他自己也是文件夹
+    intentToBackupInfoActivity.putExtra(BackupInfoActivity.KEY_INFO,backupDir.toString());
+    //intentToBackupInfoActivity.putExtra(BackupInfoActivity.KEY_INFO,backupDir.getParent());
+    intentToBackupInfoActivity.setFlags(FLAG_ACTIVITY_NEW_TASK);
+
+    startActivity(intentToBackupInfoActivity);
+    //ActivityUtil.startActivity(this,);
+    //Intent intentTo = new Intent(this, MainActivity.class);
+    Intent intentTo = new Intent(this, SettingsActivity.class);
+
+    //设置TaskStackBuilder
+    TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+    stackBuilder.addParentStack(MainActivity.class);
+    stackBuilder.addNextIntent(intentTo);
+
+
+    //NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    //Notification notification = new NotificationCompat.Builder(this)
+    //        .setSmallIcon(R.mipmap.ic_launcher)        //设置图标
+    //        .setContentTitle("标题")                    //设置标题
+    //        .setContentText("这是内容，点击我可以跳转")                 //消息内容
+    //        .setWhen(System.currentTimeMillis())         //发送时间
+    //        .setDefaults(Notification.DEFAULT_ALL)      //设置默认的提示音，振动方式，灯光
+    //        .setAutoCancel(true)                         //打开程序后图标消失
+    //        .setContentIntent(pendingIntent)              //设置点击响应
+    //        .build();
+    //manager.notify(1, notification)
+
+    //mNotificationsHelper.finish(intent, notificationMessage);
+    PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    mNotificationsHelper.finish(1,pendingIntent, notificationMessage);
+    sendNotification();
+  }
+  void startBackupInfo(File backupDir, String notificationMessage){
+    //    消息没有弹出
+    //Intent intentToBackupInfoActivity = new Intent(this, BackupInfoActivity.class);
+    Intent intentToBackupInfoActivity = new Intent(this, HolderActivity.class);
+    //activity.startActivity(intent);
+    //backupDir.getParent()
+    String parent = backupDir.getParent();
+    Log.i(TAG, "exportData: parent  "+parent);
+    //这里需要传入的是这个文件而不是他的父亲  activity里面不要打开他的 父亲啊 因为他自己也是文件夹
+    //intentToBackupInfoActivity.putExtra(BackupInfoActivity.KEY_INFO,backupDir.toString());
+    //intentToBackupInfoActivity.putExtra(BackupInfoActivity.KEYY_INFO,backupDir.getParent());
+    //intentToBackupInfoActivity.putExtra(HolderActivity.KEY_INFO,backupDir.getParent());
+    intentToBackupInfoActivity.putExtra(HolderActivity.KEY_INFO,backupDir.toString());
+    intentToBackupInfoActivity.setFlags(FLAG_ACTIVITY_NEW_TASK);
+
+    startActivity(intentToBackupInfoActivity);
+    //ActivityUtil.startActivity(this,);
+    //Intent intentTo = new Intent(this, MainActivity.class);
+    Intent intentTo = new Intent(this, SettingsActivity.class);
+
+    //设置TaskStackBuilder
+    TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+    stackBuilder.addParentStack(MainActivity.class);
+    stackBuilder.addNextIntent(intentTo);
+
+
+    //NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    //Notification notification = new NotificationCompat.Builder(this)
+    //        .setSmallIcon(R.mipmap.ic_launcher)        //设置图标
+    //        .setContentTitle("标题")                    //设置标题
+    //        .setContentText("这是内容，点击我可以跳转")                 //消息内容
+    //        .setWhen(System.currentTimeMillis())         //发送时间
+    //        .setDefaults(Notification.DEFAULT_ALL)      //设置默认的提示音，振动方式，灯光
+    //        .setAutoCancel(true)                         //打开程序后图标消失
+    //        .setContentIntent(pendingIntent)              //设置点击响应
+    //        .build();
+    //manager.notify(1, notification)
+
+    //mNotificationsHelper.finish(intent, notificationMessage);
+    PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    mNotificationsHelper.finish(1,pendingIntent, notificationMessage);
+    sendNotification();
+  }
+
+  private static final String NOTIFICATION_BUTTON1_CLICK= "notification_button1_click";
+  private static final String NOTIFICATION_BUTTON2_CLICK= "notification_button2_click";
+  private ButtonReceiver receiver;
+//————————————————
+//  版权声明：本文为CSDN博主「安之若素丶c」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//  原文链接：https://blog.csdn.net/qq_34414005/article/details/71336136
+
+  /*
+   * 发送一个通知
+   * */
+  public void sendNotification(){
+    //默认是工作中
+    NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    NotificationCompat.Builder builder = new NotificationCompat
+            .Builder(this,"noti_back").setSmallIcon(R.mipmap.ic_launcher);
+    //@layout/notification_layout includes views not allowed in a RemoteView: androidx.constraintlayout.widget.ConstraintLayout
+
+    RemoteViews remoteViews = new RemoteViews(getPackageName(),R.layout.notification_layout);
+    Intent intent = new Intent(this, ButtonReceiver.class);
+    intent.setAction(NOTIFICATION_BUTTON1_CLICK);
+    PendingIntent pendingIntent = PendingIntent.getBroadcast(this,0,intent,0);
+    remoteViews.setOnClickPendingIntent(R.id.btn_1,pendingIntent);
+    //Intent intent = new Intent(this, ButtonReceiver.class);
+    //PendingIntent pendingIntent2;
+    intent.setAction(NOTIFICATION_BUTTON2_CLICK);
+    PendingIntent pendingIntent2 = PendingIntent.getBroadcast(this,0,intent,0);
+    remoteViews.setOnClickPendingIntent(R.id.btn_2,pendingIntent2);
+    remoteViews.setTextViewText(R.id.text_view,"啦啦啦德玛西亚");
+    /*
+     * 获取到系统默认通知颜色，并设置通知字体颜色
+     * */
+
+    //remoteViews.setInt(R.id.text_view,"setTextColor",
+    //        NotificationUtils.isDarkNotificationTheme(OmniNotes.getAppContext())==true? Color.WHITE:Color.BLACK);
+
+    /*
+     * 判断SDK后使用bigContentView让通知显示高度变大
+     * */
+    Notification notification = new Notification();
+    if(android.os.Build.VERSION.SDK_INT >= 16) {
+      notification = builder.build();
+      notification.bigContentView = remoteViews;
+    }
+    notification.contentView = remoteViews;
+    manager.notify(1,notification);
+  }
+//————————————————
+//  版权声明：本文为CSDN博主「安之若素丶c」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+//  原文链接：https://blog.csdn.net/qq_34414005/article/details/71336136
+//
+//  void openDir(){
+//    if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+//      showToast(R.string.msg_storage_nosdcard);
+//      return;
+//    }
+//    //获取文件下载路径
+//    String compName = AppString.getCompanyName();
+//    String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + compName + "/OSC_DATA/";
+//    File dir = new File(path);
+//    if (!dir.exists()) {
+//      dir.mkdirs();
+//    }
+//    //调用系统文件管理器打开指定路径目录
+//    Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//    intent.setDataAndType(Uri.fromFile(dir.getParentFile()), "file/*.txt");
+//    intent.addCategory(Intent.CATEGORY_OPENABLE);
+//    startActivityForResult(intent, REQUEST_CHOOSEFILE);
+//  }
 
   private synchronized void importData(Intent intent) {
 
@@ -188,7 +364,7 @@ public class DataBackupIntentService extends IntentService implements OnAttachin
     }
     // Add this bundle to the intent
     intentLaunch.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-    intentLaunch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    intentLaunch.addFlags(FLAG_ACTIVITY_NEW_TASK);
     // Creates the PendingIntent
     PendingIntent notifyIntent = PendingIntent.getActivity(mContext, 0, intentLaunch,
         PendingIntent.FLAG_UPDATE_CURRENT);

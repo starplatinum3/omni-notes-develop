@@ -29,7 +29,7 @@ import lombok.experimental.UtilityClass;
 public class TagOpenerHelper {
 
   @Nullable
-  public Intent openOrGetIntent(Context context, String tagText) throws UnhandledIntentException {
+  public static Intent openOrGetIntent(Context context, String tagText) throws UnhandledIntentException {
     Intent intent;
     switch (tagText.split(":")[0]) {
       case "tel":

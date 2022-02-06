@@ -275,6 +275,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
     TextLinkClickListener textLinkClickListener = new TextLinkClickListener() {
         @Override
         public void onTextLinkClick(View view, final String clickedString, final String url) {
+            Log.d(TAG, "onTextLinkClick: url  "+url);
             new MaterialDialog.Builder(mainActivity)
                     .content(clickedString)
                     .negativeColorRes(R.color.colorPrimary)
@@ -283,9 +284,12 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
                     .onPositive((dialog, which) -> {
                         try {
                             Intent intent = TagOpenerHelper.openOrGetIntent(getContext(), url);
+                            mainActivity.startActivity(intent);
                             if (intent != null) {
+                                //打开一个链接 为什么是init note，不是打开手机浏览器吗
                                 mainActivity.initNotesList(intent);
                             }
+                            //ActivityUtil.startBrowser(getActivity(),url);
                         } catch (UnhandledIntentException e) {
                             mainActivity.showMessage(R.string.no_application_can_perform_this_action,
                                     ONStyle.ALERT);
@@ -319,6 +323,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
         //fingerprintHelperInit();
     }
 
+    @Deprecated
     @RequiresApi(api = Build.VERSION_CODES.M)
     void fingerprintHelperInit() {
         Log.i(TAG, "fingerprintHelperInit: fingerprintHelperInit");
@@ -1178,6 +1183,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
 
     /**
      * Performs the Regex Comparison for the Pattern and adds them to listOfLinks array list
+     * 对模式执行正则表达式比较，并将它们添加到listOfLinks数组列表中
      *
      * @param links
      * @param words
@@ -1186,6 +1192,7 @@ public class DetailFragment extends BaseFragment implements OnReminderPickedList
     private void gatherLinks2(ArrayList<Hyperlink> links,
                               String[] words, Pattern pattern) {
         // Matcher matching the pattern
+        //匹配器匹配模式
         Matcher m;
 
         int start = 0;

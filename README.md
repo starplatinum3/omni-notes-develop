@@ -3,6 +3,15 @@
 Omni-Notes
 ==========
 
+原来的项目
+
+[federicoiosue/Omni-Notes: Open source note-taking application for Android (github.com)](https://github.com/federicoiosue/Omni-Notes)
+
+
+change log
+2022年2月6日11:31:08
+点击链接跳出浏览器
+
 2021年11月2日16:30:58
 增加了 文档内搜索关键词的功能。 我觉得挺好的，不过代码写的太烂，可能过不了审核，所以就不提交pr了，就fork吧
 

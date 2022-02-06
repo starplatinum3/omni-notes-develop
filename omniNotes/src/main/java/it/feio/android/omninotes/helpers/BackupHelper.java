@@ -238,9 +238,25 @@ public final class BackupHelper {
    * @param backupFolderName subfolder of the app's external sd folder where notes will be stored
    */
   public static void startBackupService(String backupFolderName) {
+    //和 activity 没有绑定 所以怎么显示他是好了呢，只能是notifi
     Intent service = new Intent(OmniNotes.getAppContext(), DataBackupIntentService.class);
     service.setAction(DataBackupIntentService.ACTION_DATA_EXPORT);
     service.putExtra(DataBackupIntentService.INTENT_BACKUP_NAME, backupFolderName);
+    //service.set
+    //这里的service 是一个Intent 不是自定义的 所以set 不了
+    //安卓 启动一个 service
+    OmniNotes.getAppContext().startService(service);
+  }
+
+  public static void startBackupService(String backupFolderName,Context context) {
+    //和 activity 没有绑定 所以怎么显示他是好了呢，只能是notifi
+    Intent service = new Intent(context, DataBackupIntentService.class);
+    //Intent service = new Intent(OmniNotes.getAppContext(), DataBackupIntentService.class);
+    service.setAction(DataBackupIntentService.ACTION_DATA_EXPORT);
+    service.putExtra(DataBackupIntentService.INTENT_BACKUP_NAME, backupFolderName);
+    //service.set
+    //这里的service 是一个Intent 不是自定义的 所以set 不了
+    //安卓 启动一个 service
     OmniNotes.getAppContext().startService(service);
   }
 
